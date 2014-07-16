@@ -41,6 +41,16 @@ class Arkbase {
 			exit;
 		}
 	}
+	// 15-Jul-2014: New method to insert a record
+	public function insert_record($sql, $data = null){
+		$this->conn = $this->getConnection();
+		try {
+			$this->dt = $this->conn->prepare($sql);
+			$this->dt->execute( $data );
+		} catch (PDOException $ex) {
+
+		}
+	}
 
 	public function query_all_data( $sql, $data = null ) {
 		$this->conn = $this->getConnection();
