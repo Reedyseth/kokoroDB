@@ -48,7 +48,14 @@ class Arkbase {
 			$this->dt = $this->conn->prepare($sql);
 			$this->dt->execute( $data );
 		} catch (PDOException $ex) {
+			if ( $ex->getCode() == "HY093" ) {
+				$errorMessage["message_error"] = $ex->getMessage();
+			}
+			$errorMessage["ex_insert_error"] = $ex->getMessage();
+			$this->setErrorMessage( $errorMessage );
+			$this->dt->closeCursor();
 
+			return false;
 		}
 	}
 
