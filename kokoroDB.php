@@ -6,9 +6,9 @@
  * @author  Israel Barragan
  * @version 140521
  * @since   11-Apr-2014
- * @name arkbase.php
+ * @name kokorodb.php
  */
-class Arkbase {
+class kokoroDB {
 	private $connection = null;
 	private $db_user = "root";
 	private $db_pwd = "1234";
