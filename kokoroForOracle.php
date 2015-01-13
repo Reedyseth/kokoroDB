@@ -5,15 +5,14 @@
  * @author  Israel Barragan C.
  * @version 150112
  * @since   12-Jan-2015
- * @name kokoroForMysql.php
+ * @name kokoroForOracle.php
  */
-include 'IkokoroDB.php';
-class kokoroForMysql extends kokoroDB implements IkokoroDB {
-	private $conn         = null;
-	private $connection   = null;
-	private $dt           = null;
-	private $data         = null;
-	private $errorMessage = array();
+class kokoroForOracle extends kokoroDB implements IkokoroDB {
+	private $conn          = null;
+	private $connection    = null;
+	private $dt            = null;
+	private $data          = null;
+	private $errorMessage  = array();
 
 	function __construct() {
 		$this->create_connection();
@@ -21,20 +20,22 @@ class kokoroForMysql extends kokoroDB implements IkokoroDB {
 
 	function create_connection() {
 		try {
-			$conn = new PDO( "mysql:host=" . $this->getDB_host() .
-				';dbname=' . $this->getDB_name(), $this->getDB_user(), $this->getDB_pwd() );
-			// Lets make sure that PDO will throw exceptions.
-			$conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-			// Now we set the connection attribute.
-			$this->setConnection( $conn );
-		}
-		catch ( PDOException $ex ) {
-			$errorMessage["ex_db_connection_error"]      = $ex;
-			$errorMessage["message_db_connection_error"] = "Cannot connect to database";
-			$this->setErrorMessage( $errorMessage );
-			throw new Exception("Cannot connect to database");
-			exit;
-		}
+            // Oracle Connection.
+            $conn = new PDO('oci:dbname='.$this->getDB_host().':'.$this->getDB_port().'/'.$this->getDB_name(),
+            		$this->getDB_user(),$this->getDB_pwd() );
+            // Lets make sure that PDO will throw exceptions.
+            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			// Since working with Oracle is a bit different, we have to set the explicit date format
+			$pstmt = $conn->prepare("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'" );
+			$pstmt->execute();
+            // Now we set the connection attribute.
+			$this->setConnection($conn);
+		} catch(PDOException $ex) {
+			$errorMessage["ex_db_connection_error"] = $ex;
+            $errorMessage["message_db_connection_error"] = "Cannot connect to database";
+            $this->setErrorMessage($errorMessage);
+            throw new Exception($ex, 1111);
+        }
 	}
 	// 15-Jul-2014: New method to insert a record
 	public function insert_record($sql, $data = null){
@@ -220,6 +221,17 @@ class kokoroForMysql extends kokoroDB implements IkokoroDB {
 
 		return $this;
 	}
+
+
+    /**
+     * Gets the value of driverOptions.
+     *
+     * @return mixed
+     */
+    public function getDriverOptions()
+    {
+        return $this->driverOptions;
+    }
 }
 
 ?>

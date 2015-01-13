@@ -6,6 +6,7 @@
  * @version 150112
  * @since   11-Apr-2014
  * @name kokorodb.php
+ * @url https://github.com/Reedyseth/kokoroDB
  */
 include 'kokoroForMysql.php';
 include 'kokoroForOracle.php';
@@ -17,6 +18,7 @@ abstract class kokoroDB {
 	private $db_host          = "localhost";
 	private $db_name          = "tutorials";
 	private $db_port          = "";
+
 	private $safeTransactions = false;
 
 	static function createKokoro($dbConnection) {
@@ -26,11 +28,12 @@ abstract class kokoroDB {
 		}
 		else if ($dbConnection == "oracle") {
 			// create mysql object.
+			return  new kokoroForOracle();
 		} else {
 			if (empty($dbConnection)) {
 				throw new Exception("Unsupport Connection. You need to provide a connection type", 1001);
 			} else {
-				throw new Exception("Unsupport Connection", 1002);
+				throw new Exception("Unsupport Connection type", 1002);
 			}
 		}
 	}
