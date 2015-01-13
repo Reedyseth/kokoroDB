@@ -9,7 +9,7 @@ kokoroDB is a PHP library that allows you to work with a database without writin
 
 First you have to include the library into your project. You need to be aware of the paths. This is an example
 
-```
+```php
 // Add the kokoroDB library
 require_once("kokorodb.php");
 ```
@@ -17,13 +17,13 @@ require_once("kokorodb.php");
 The new change on the kokoroDB library allows you to create a connection to MySQL and Oracle. You only have to define this using the static method on the kokoroDB class.
 
 **MySQL**
-```
+```php
 // Create the MySQL connection.
 $kokorodb = kokoroDB::createKokoro("mysql");
 ```
 
 **Oracle**
-```
+```php
 // Create the Oracle connection.
 $kokorodb = kokoroDB::createKokoro("oracle");
 ```
@@ -32,7 +32,7 @@ $kokorodb = kokoroDB::createKokoro("oracle");
 
 For this example I use the `EMPLOYEE` table of the Oracle `HR` schema, this schema is added on you Oracle installation if you selected it. kokoroDB store any error message in an array variable so you get the information with the `getErrorMessage()` method.  So this is how you retrieve all the data of the `EMPLOYEE` table.
 
-```
+```php
 <?php
 // Add the kokoroDB library
 require_once("kokorodb.php");
@@ -74,7 +74,7 @@ if (!$data) {
 
 ### Changelog
 
-**21-May-2014**
+**13-Jan-2015**
 * **Author:** Israel Barragan C.
 * **Comment:** Change the Pattern of kokoroDB. Now it allows to connect to MySQL and Oracle.
 
