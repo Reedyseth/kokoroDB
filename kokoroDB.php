@@ -21,7 +21,7 @@ abstract class kokoroDB {
 
 	private $safeTransactions = false;
 
-	static function createKokoro($dbConnection) {
+	static function createConnection($dbConnection) {
 		if ($dbConnection == "mysql") {
 			// create mysql object.
 			return  new kokoroForMysql();

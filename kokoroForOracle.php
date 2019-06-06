@@ -8,219 +8,219 @@
  * @name kokoroForOracle.php
  */
 class kokoroForOracle extends kokoroDB implements IkokoroDB {
-	private $conn          = null;
-	private $connection    = null;
-	private $dt            = null;
-	private $data          = null;
-	private $errorMessage  = array();
+    private $conn          = null;
+    private $connection    = null;
+    private $dt            = null;
+    private $data          = null;
+    private $errorMessage  = array();
 
-	function __construct() {
-		$this->create_connection();
-	}
+    function __construct() {
+        $this->create_connection();
+    }
 
-	function create_connection() {
-		try {
+    function create_connection() {
+        try {
             // Oracle Connection.
             $conn = new PDO('oci:dbname='.$this->getDB_host().':'.$this->getDB_port().'/'.$this->getDB_name(),
-            		$this->getDB_user(),$this->getDB_pwd() );
+                $this->getDB_user(),$this->getDB_pwd() );
             // Lets make sure that PDO will throw exceptions.
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			// Since working with Oracle is a bit different, we have to set the explicit date format
-			$pstmt = $conn->prepare("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'" );
-			$pstmt->execute();
+            // Since working with Oracle is a bit different, we have to set the explicit date format
+            $pstmt = $conn->prepare("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'" );
+            $pstmt->execute();
             // Now we set the connection attribute.
-			$this->setConnection($conn);
-		} catch(PDOException $ex) {
-			$errorMessage["ex_db_connection_error"] = $ex;
+            $this->setConnection($conn);
+        } catch(PDOException $ex) {
+            $errorMessage["ex_db_connection_error"] = $ex;
             $errorMessage["message_db_connection_error"] = "Cannot connect to database";
             $this->setErrorMessage($errorMessage);
             throw new Exception($ex, 1111);
         }
-	}
-	// 15-Jul-2014: New method to insert a record
-	public function insert_record($sql, $data = null){
-		$this->conn = $this->getConnection();
-		try {
-			$this->dt = $this->conn->prepare($sql);
-			$this->dt->execute( $data );
-		} catch (PDOException $ex) {
-			if ( $ex->getCode() == "HY093" ) {
-				$errorMessage["message_error"] = $ex->getMessage();
-			}
-			$errorMessage["ex_insert_error"] = $ex->getMessage();
-			$this->setErrorMessage( $errorMessage );
-			$this->dt->closeCursor();
+    }
+    // 15-Jul-2014: New method to insert a record
+    public function insert_record($sql, $data = null){
+        $this->conn = $this->getConnection();
+        try {
+            $this->dt = $this->conn->prepare($sql);
+            $this->dt->execute( $data );
+        } catch (PDOException $ex) {
+            if ( $ex->getCode() == "HY093" ) {
+                $errorMessage["message_error"] = $ex->getMessage();
+            }
+            $errorMessage["ex_insert_error"] = $ex->getMessage();
+            $this->setErrorMessage( $errorMessage );
+            $this->dt->closeCursor();
 
-			return false;
-		}
-	}
+            return false;
+        }
+    }
 
-	public function query_all_data( $sql, $data = null ) {
-		$this->conn = $this->getConnection();
-		try {
-			$this->dt = $this->conn->prepare( $sql );
-			$this->dt->execute( $data );
-		}
-		catch ( PDOException $ex ) {
-			// var_dump($ex);
-			//echo $ex->xdebug_message;
-			if ( $ex->getCode() == "HY093" ) {
-				$errorMessage["message_error"] = $ex->getMessage();
-			}
-			$errorMessage["ex_query_error"] = $ex->getMessage();
-			$this->setErrorMessage( $errorMessage );
-			$this->dt->closeCursor();
+    public function query_all_data( $sql, $data = null ) {
+        $this->conn = $this->getConnection();
+        try {
+            $this->dt = $this->conn->prepare( $sql );
+            $this->dt->execute( $data );
+        }
+        catch ( PDOException $ex ) {
+            // var_dump($ex);
+            //echo $ex->xdebug_message;
+            if ( $ex->getCode() == "HY093" ) {
+                $errorMessage["message_error"] = $ex->getMessage();
+            }
+            $errorMessage["ex_query_error"] = $ex->getMessage();
+            $this->setErrorMessage( $errorMessage );
+            $this->dt->closeCursor();
 
-			return false;
-		}
-		$this->data = $this->dt->fetchAll();
-		$dataObject = array();
-		// This will create an array of objects.
-		foreach ( $this->data as $row ) {
-			//array_push($dataObject,(Object)$row);
-			// This is faster tha array_push because where are not
-			// doing nothing with the value return by array_push.
-			$dataObject[] = (object) $row;
-		}
+            return false;
+        }
+        $this->data = $this->dt->fetchAll();
+        $dataObject = array();
+        // This will create an array of objects.
+        foreach ( $this->data as $row ) {
+            //array_push($dataObject,(Object)$row);
+            // This is faster tha array_push because where are not
+            // doing nothing with the value return by array_push.
+            $dataObject[] = (object) $row;
+        }
 
-		return $dataObject;
-	}
+        return $dataObject;
+    }
 
-	private function _create_binding_types( $data_types = null ) {
-		$types = array();
+    private function _create_binding_types( $data_types = null ) {
+        $types = array();
 
-		if ( $data_types == null ) {
-			$errorMessage["ex_param_type_null"] = '_create_binding_types(), Can\'t create null array';
-			$this->setErrorMessage( $errorMessage );
+        if ( $data_types == null ) {
+            $errorMessage["ex_param_type_null"] = '_create_binding_types(), Can\'t create null array';
+            $this->setErrorMessage( $errorMessage );
 
-			return false;
-		}
-		$types_count = sizeof( $data_types );
-		for ( $i = 0; $i < $types_count; $i ++ ) {
-			switch ( $data_types[$i] ) {
-				case 'int':
-					$types[] = PDO::PARAM_INT;
-					break;
-				case 'boolean':
-					$types[] = PDO::PARAM_BOOL;
-					break;
-				case 'string':
-					$types[] = PDO::PARAM_STR;
-					break;
-				default:
-					$types[] = PDO::PARAM_NULL;
-					break;
-			}
-		}
+            return false;
+        }
+        $types_count = sizeof( $data_types );
+        for ( $i = 0; $i < $types_count; $i ++ ) {
+            switch ( $data_types[$i] ) {
+                case 'int':
+                    $types[] = PDO::PARAM_INT;
+                    break;
+                case 'boolean':
+                    $types[] = PDO::PARAM_BOOL;
+                    break;
+                case 'string':
+                    $types[] = PDO::PARAM_STR;
+                    break;
+                default:
+                    $types[] = PDO::PARAM_NULL;
+                    break;
+            }
+        }
 
-		return $types;
-	}
+        return $types;
+    }
 
-	public function query_all_data_exact( $sql, $data = array(), $data_types = array() ) {
-		$this->conn       = $this->getConnection();
-		$binding_types    = array();
-		$value_count      = sizeof( $data );
-		$data_types_count = sizeof( $data );
+    public function query_all_data_exact( $sql, $data = array(), $data_types = array() ) {
+        $this->conn       = $this->getConnection();
+        $binding_types    = array();
+        $value_count      = sizeof( $data );
+        $data_types_count = sizeof( $data );
 
-		if ( $value_count != $data_types_count ) {
-			$errorMessage["ex_param_type_error"] = 'The number of values is not the same as the'
-				. ' Data Types. Check that you are sending the'
-				. ' correct number of values and types.';
-			$this->setErrorMessage( $errorMessage );
+        if ( $value_count != $data_types_count ) {
+            $errorMessage["ex_param_type_error"] = 'The number of values is not the same as the'
+                . ' Data Types. Check that you are sending the'
+                . ' correct number of values and types.';
+            $this->setErrorMessage( $errorMessage );
 
-			return false;
-		} else {
-			$binding_types = $this->_create_binding_types( $data_types );
-			if ( ! $binding_types ) {
-				return false;
-			}
-			// Data is ready to be bind
-		}
-		try {
-			$this->dt    = $this->conn->prepare( $sql );
-			$array_count = sizeof( ( $binding_types ) );
-			for ( $i = 0; $i < $array_count; $i ++ ) {
-				$this->dt->bindParam( 1 + $i, $data[$i], $binding_types[$i] );
-			}
-			$this->dt->execute();
-		}
-		catch ( PDOException $ex ) {
-			// var_dump($ex);
-			//echo $ex->xdebug_message;
-			if ( $ex->getCode() == "HY093" ) {
-				$errorMessage["message_error"] = $ex->getMessage();
-			}
-			$errorMessage["ex_query_error"] = $ex->getMessage();
-			$this->setErrorMessage( $errorMessage );
-			$this->dt->closeCursor();
+            return false;
+        } else {
+            $binding_types = $this->_create_binding_types( $data_types );
+            if ( ! $binding_types ) {
+                return false;
+            }
+            // Data is ready to be bind
+        }
+        try {
+            $this->dt    = $this->conn->prepare( $sql );
+            $array_count = sizeof( ( $binding_types ) );
+            for ( $i = 0; $i < $array_count; $i ++ ) {
+                $this->dt->bindParam( 1 + $i, $data[$i], $binding_types[$i] );
+            }
+            $this->dt->execute();
+        }
+        catch ( PDOException $ex ) {
+            // var_dump($ex);
+            //echo $ex->xdebug_message;
+            if ( $ex->getCode() == "HY093" ) {
+                $errorMessage["message_error"] = $ex->getMessage();
+            }
+            $errorMessage["ex_query_error"] = $ex->getMessage();
+            $this->setErrorMessage( $errorMessage );
+            $this->dt->closeCursor();
 
-			return false;
-		}
-		$this->data = $this->dt->fetchAll();
-		$dataObject = array();
-		// This will create an array of objects.
-		foreach ( $this->data as $row ) {
-			//array_push($dataObject,(Object)$row);
-			$dataObject[] = (object) $row;
-			// This is faster tha array_push because where are not
-			// doing nothing with the value return by array_push.
-		}
+            return false;
+        }
+        $this->data = $this->dt->fetchAll();
+        $dataObject = array();
+        // This will create an array of objects.
+        foreach ( $this->data as $row ) {
+            //array_push($dataObject,(Object)$row);
+            $dataObject[] = (object) $row;
+            // This is faster tha array_push because where are not
+            // doing nothing with the value return by array_push.
+        }
 
-		return $dataObject;
-	}
+        return $dataObject;
+    }
 
-	/**
-	 * Return an associative array with the errors.
-	 *
-	 * @return mixed
-	 */
-	public function errorInfo() {
-		return $this->errorMessage;
-	}
+    /**
+     * Return an associative array with the errors.
+     *
+     * @return mixed
+     */
+    public function errorInfo() {
+        return $this->errorMessage;
+    }
 
-	/**
-	 * Gets the value of errorMessage.
-	 *
-	 * @return mixed
-	 */
-	public function getErrorMessage() {
-		return $this->errorMessage;
-	}
+    /**
+     * Gets the value of errorMessage.
+     *
+     * @return mixed
+     */
+    public function getErrorMessage() {
+        return $this->errorMessage;
+    }
 
-	/**
-	 * Sets the value of errorMessage.
-	 *
-	 * @param mixed $errorMessage the errorMessage
-	 *
-	 * @return self
-	 */
-	public function setErrorMessage( $errorMessage ) {
-		$this->errorMessage[] = $errorMessage;
+    /**
+     * Sets the value of errorMessage.
+     *
+     * @param mixed $errorMessage the errorMessage
+     *
+     * @return self
+     */
+    public function setErrorMessage( $errorMessage ) {
+        $this->errorMessage[] = $errorMessage;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Gets the value of connection.
-	 *
-	 * @return mixed
-	 */
-	public function getConnection() {
-		return $this->connection;
-	}
+    /**
+     * Gets the value of connection.
+     *
+     * @return mixed
+     */
+    public function getConnection() {
+        return $this->connection;
+    }
 
-	/**
-	 * Sets the value of connection.
-	 *
-	 * @param mixed $connection the connection
-	 *
-	 * @return self
-	 */
-	public function setConnection( $connection ) {
-		$this->connection = $connection;
+    /**
+     * Sets the value of connection.
+     *
+     * @param mixed $connection the connection
+     *
+     * @return self
+     */
+    public function setConnection( $connection ) {
+        $this->connection = $connection;
 
-		return $this;
-	}
+        return $this;
+    }
 
 
     /**
