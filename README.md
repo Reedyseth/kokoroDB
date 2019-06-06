@@ -37,7 +37,7 @@ For this example I use the `EMPLOYEE` table of the Oracle `HR` schema, this sche
 // Add the kokoroDB library
 require_once("kokorodb.php");
 // Create the Oracle connection
-$kokorodb = kokoroDB::createKokoro("oracle");
+$kokorodb = kokoroDB::createConnection"oracle");
 // Write the query.
 $sql = 'SELECT * FROM EMPLOYEES';
 // Query all data passing the query.
